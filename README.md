@@ -1992,7 +1992,7 @@ Vercelに環境変数を入力:
 
 全ての環境変数が入力できたら､Deploy ボタンをクリックする｡
 
-### Error Recovery: デプロイ時のビルドエラー
+### Error Recovery: デプロイ時のビルドエラー.01: TypeScript エラー
 
 デプロイ時に Vercel でビルドが走ると以下のようなエラーが発生することがある。
 
@@ -2047,6 +2047,37 @@ AFTER: package.json
   }
 }
 ```
+
+### Error Recovery: デプロイ時のビルドエラー.02: prisma generate エラー
+
+デプロイ時のビルドで以下のようなエラーが発生する場合がある。
+
+``` console
+Prisma has detected that this project was built on Vercel, which caches dependencies. This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered. To fix this, make sure to run the `prisma generate` command during the build process.
+Learn how: https://pris.ly/d/vercel-build
+PrismaClientInitializationError: Prisma has detected that this project was built on Vercel, which caches dependencies. This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered. To fix this, make sure to run the `prisma generate` command during the build process.
+```
+
+これは、Vercel が依存関係のいずれかが変更されるまで、プロジェクトの依存関係をキャッシュするために発生する。これはビルドを高速化するためで、一般的には良いことだが、Prisma Client ではいくつかの問題が発生する。
+
+Prisma は、依存関係がインストールされたときに Prisma Client を生成するために postinstall フックを使用する。Vercel はキャッシュされたモジュールを使用するため、この postinstall フックは、最初のデプロイの後に行われるデプロイでは実行されない。その結果、Prisma Client が実際のデータベーススキーマと同期しなくなる。
+
+このキャッシュの問題を解決するには、Prisma のドキュメントを参考に、以下の対応を行う。
+
+Vercel build dependency caching workaround | Prisma Docs  
+https://www.prisma.io/docs/guides/other/troubleshooting-orm/help-articles/vercel-caching-issue
+
+package.json:  
+``` json
+{
+  ...
+  "scripts" {
+    "postinstall": "prisma generate"
+  }
+  ...
+}
+```
+
 
 あなたのアプリが Vercel にデプロイされる｡準備ができたら､Vercel が成功画面を表示する。
 
