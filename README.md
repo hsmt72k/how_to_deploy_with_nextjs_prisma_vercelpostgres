@@ -31,7 +31,7 @@ Prisma は、Node.js および TypeScript アプリケーションでデータ�
 - Step.09: 下書き機能を追加する
 - Step.10: 公開機能を追加する
 - Step.11: 削除機能の追加
-
+- Error Recovery: デプロイ時のビルドエラー
 
 ### 前提条件
 
@@ -1953,9 +1953,11 @@ Vercel のプロジェクト名として、`blogr-nextjs-prisma` の前に、あ
 `NEXTAUTH_URL` 環境変数には GitHub OAuth app の Authorization Callback URL と同じ値、 `https://FIRSTNAME-LASTNAME-blogr-nextjs-prisma.vercel.app/api/auth` を設定する必要がある。
 
 Authorization callback URLを修正する:  
-![]()
+![Authorization callback URLを修正する](./captures/33_update_the_authorization_callback_url.png)
 
-次に､ 'jane-doe-blogr-nextjs-prisma' のように名前を一致させたGitHubのリポジトリを作成します｡以下の3行のコマンドを実行し､リポジトリを作成してプッシュする。
+
+
+次に､ `jane-doe-blogr-nextjs-prisma` のように名前を一致させた GitHub のリポジトリを作成する｡以下の3行のコマンドを実行し､リポジトリを作成してプッシュする。
 
 リポジトリをプッシュ:  
 ``` console
@@ -1989,6 +1991,63 @@ Vercelに環境変数を入力:
 - SECRET: GITHUB_SECRETと同じものを入力してください｡Prismaが使用します｡
 
 全ての環境変数が入力できたら､Deploy ボタンをクリックする｡
+
+### Error Recovery: デプロイ時のビルドエラー
+
+デプロイ時に Vercel でビルドが走ると以下のようなエラーが発生することがある。
+
+``` console
+Running "npm run build"
+> hello-next@1.0.0 build
+> next build
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+info  - Linting and checking validity of types...
+Failed to compile.
+./node_modules/@prisma/client/runtime/library.d.ts:1224:35
+Type error: '?' expected.
+  1222 | 
+  1223 | export declare type GetFindResult<P extends Payload, A> = {} extends A ? DefaultSelection<P> : A extends {
+> 1224 |     select: infer S extends object;
+       |                                   ^
+  1225 | } & Record<string, unknown> | {
+  1226 |     include: infer I extends object;
+  1227 | } & Record<string, unknown> ? {
+Error: Command "npm run build" exited with 1
+```
+
+この場合は、TypeScript のバージョンが古いことがエラーの原因なので、以下のコマンドで TypeScript を更新する。
+
+``` console
+npm install --save-dev typescript@latest
+```
+
+そうすると、以下のように TypeScript のバージョンが更新されるはずである。
+
+BEFORE: package.json  
+``` json
+{
+  // ...
+  "devDependencies": {
+    // ...
+    "typescript": "4.5.5"
+  }
+}
+```
+
+AFTER: package.json  
+``` json
+{
+  // ...
+  "devDependencies": {
+    // ...
+    "typescript": "^5.2.2"
+  }
+}
+```
+
 あなたのアプリが Vercel にデプロイされる｡準備ができたら､Vercel が成功画面を表示する。
 
 アプリが Vercel にデプロイされる:  
